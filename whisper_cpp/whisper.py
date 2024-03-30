@@ -202,6 +202,8 @@ class Whisper(object):
     def transcribe(self, samples):
         params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY)
         params.n_threads = 10
+        params.suppress_non_speech_tokens = True
+        params.suppress_blank = True
         whisper_full_parallel(self.ctx, params, samples.ctypes.data_as(ctypes.POINTER(ctypes.c_float)), len(samples), 1)
         n_segments = whisper_full_n_segments(self.ctx)
         segments = []
