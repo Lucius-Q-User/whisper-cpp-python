@@ -3,6 +3,7 @@ import ctypes
 import functools
 import os
 import multiprocessing
+import sys
 from collections import namedtuple
 
 class whisper_aheads(ctypes.Structure):
@@ -102,7 +103,13 @@ def ctypes_function_for_shared_library(lib):
 
     return ctypes_function
 
-lib = ctypes.CDLL(f'{os.path.dirname(__file__)}/libwhisper.dylib')
+
+if sys.platform == 'darwin':
+    ext = 'dylib'
+elif sys.platform == 'linux':
+    ext = 'so'
+
+lib = ctypes.CDLL(f'{os.path.dirname(__file__)}/libwhisper.{ext}')
 ctypes_function = ctypes_function_for_shared_library(lib)
 
 WHISPER_AHEADS_NONE = 0
