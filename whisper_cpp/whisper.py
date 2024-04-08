@@ -2,6 +2,7 @@
 import ctypes
 import functools
 import os
+import multiprocessing
 from collections import namedtuple
 
 class whisper_aheads(ctypes.Structure):
@@ -201,7 +202,7 @@ class Whisper(object):
 
     def transcribe(self, samples):
         params = whisper_full_default_params(WHISPER_SAMPLING_GREEDY)
-        params.n_threads = 10
+        params.n_threads = multiprocessing.cpu_count()
         params.suppress_non_speech_tokens = True
         params.suppress_blank = True
         whisper_full_parallel(self.ctx, params, samples.ctypes.data_as(ctypes.POINTER(ctypes.c_float)), len(samples), 1)
