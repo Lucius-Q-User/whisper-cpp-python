@@ -89,6 +89,7 @@ class whisper_full_params(ctypes.Structure):
         ('grammar_penalty', ctypes.c_float),
     ]
 
+ggml_log_callback = ctypes.CFUNCTYPE(None, ctypes.c_int, ctypes.c_char_p, ctypes.c_void_p)
 
 def ctypes_function_for_shared_library(lib):
     def ctypes_function(name, argtypes, restype):
@@ -202,10 +203,24 @@ def whisper_full_get_segment_t1():
 def whisper_full_get_segment_text():
     pass
 
+@ctypes_function(
+    "whisper_log_set",
+    [ggml_log_callback, ctypes.c_void_p],
+    None
+)
+def whisper_log_set():
+    pass
+
+def py_log_callback(level, text, userdata):
+    pass
+c_log_callback = ggml_log_callback(py_log_callback)
+
 Segment = namedtuple('Segment', ['start', 'end', 'text'])
 
 class Whisper(object):
-    def __init__(self, model_path, aheads):
+    def __init__(self, model_path, aheads, verbose):
+        if not verbose:
+            whisper_log_set(c_log_callback, None)
         dp = whisper_context_default_params()
         dp.dtw_aheads_preset = aheads
         self.ctx = whisper_init_from_file_with_params(model_path.encode(), dp)
