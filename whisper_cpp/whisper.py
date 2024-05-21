@@ -106,11 +106,13 @@ def ctypes_function_for_shared_library(lib):
 
 
 if sys.platform == 'darwin':
-    ext = 'dylib'
+    name = 'libwhisper.dylib'
 elif sys.platform == 'linux':
-    ext = 'so'
+    name = 'libwhisper.so'
+elif sys.platform == 'win32':
+    name = 'whisper.dll'
 
-lib = ctypes.CDLL(f'{os.path.dirname(__file__)}/libwhisper.{ext}')
+lib = ctypes.CDLL(f'{os.path.dirname(__file__)}/{name}')
 ctypes_function = ctypes_function_for_shared_library(lib)
 
 WHISPER_AHEADS_NONE = 0
