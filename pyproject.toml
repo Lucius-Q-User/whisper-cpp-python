@@ -7,6 +7,8 @@ name = "whisper_cpp_python_smr"
 version = "0.1"
 requires-python = ">=3.11"
 dependencies = []
+description = "A tiny wrapper around whisper.cpp"
+readme = "README.md"
 
 [tool.scikit-build]
 wheel.packages = ["whisper_cpp"]
