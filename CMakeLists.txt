@@ -4,10 +4,6 @@ project(whisper_cpp)
 
 set(BUILD_SHARED_LIBS "On")
 
-set(WHISPER_AVX "Off" CACHE BOOL "whisper: enable AVX" FORCE)
-set(WHISPER_AVX2 "Off" CACHE BOOL "whisper: enable AVX2" FORCE)
-set(WHISPER_FMA "Off" CACHE BOOL "whisper: enable FMA" FORCE)
-set(WHISPER_F16C "Off" CACHE BOOL "whisper: enable F16C" FORCE)
 set(WHISPER_METAL "On" CACHE BOOL "whisper: use Metal" FORCE)
 set(WHISPER_METAL_EMBED_LIBRARY "On" CACHE BOOL "whisper: embed metal library" FORCE)
 
