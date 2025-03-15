@@ -20,9 +20,12 @@ jobs:
         env:
           CIBW_ARCHS_LINUX: native
           CIBW_ARCHS_MACOS: universal2
-          CIBW_ARCHS_WINDOWS: AMD64 ARM64
+          CIBW_ARCHS_WINDOWS: AMD64
           CIBW_SKIP: "*-musllinux_*"
           CIBW_TEST_SKIP: "*-win_arm64"
+          CIBW_REPAIR_WHEEL_COMMAND_MACOS: delocate-wheel --require-archs {delocate_archs} -w {dest_dir} -v {wheel} --require-target-macos-version 10.15
+          CIBW_MANYLINUX_X86_64_IMAGE: ghcr.io/lucius-q-user/manylinux-opencl-x86_64
+          CIBW_MANYLINUX_AARCH64_IMAGE: ghcr.io/lucius-q-user/manylinux-opencl-aarch64
 
       - uses: actions/upload-artifact@v4
         with:

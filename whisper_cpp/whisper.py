@@ -15,6 +15,7 @@ class whisper_aheads(ctypes.Structure):
 class whisper_context_params(ctypes.Structure):
     _fields_ = [
         ('use_gpu', ctypes.c_bool),
+        ('flash_attn', ctypes.c_bool),
         ('gpu_device', ctypes.c_int),
         ('dtw_token_timestamps', ctypes.c_bool),
         ('dtw_aheads_preset', ctypes.c_int),
@@ -53,17 +54,17 @@ class whisper_full_params(ctypes.Structure):
         ('max_len', ctypes.c_int),
         ('split_on_word', ctypes.c_bool),
         ('max_tokens', ctypes.c_int),
-        ('speed_up', ctypes.c_bool),
         ('debug_mode', ctypes.c_bool),
         ('audio_ctx', ctypes.c_int),
         ('tdrz_enable', ctypes.c_bool),
-        ('p initial_prompt', ctypes.c_char),
-        ('p prompt_tokens', ctypes.c_void_p),
+        ('suppress_regex', ctypes.c_char_p),
+        ('initial_prompt', ctypes.c_char),
+        ('prompt_tokens', ctypes.c_void_p),
         ('prompt_n_tokens', ctypes.c_int),
         ('language', ctypes.c_char_p),
         ('detect_language', ctypes.c_bool),
         ('suppress_blank', ctypes.c_bool),
-        ('suppress_non_speech_tokens', ctypes.c_bool),
+        ('suppress_nst', ctypes.c_bool),
         ('temperature', ctypes.c_float),
         ('max_initial_ts', ctypes.c_float),
         ('length_penalty', ctypes.c_float),
@@ -105,14 +106,16 @@ def ctypes_function_for_shared_library(lib):
     return ctypes_function
 
 
-if sys.platform == 'darwin':
-    name = 'libwhisper.dylib'
-elif sys.platform == 'linux':
-    name = 'libwhisper.so'
-elif sys.platform == 'win32':
-    name = 'whisper.dll'
+def lib_name(base):
+    if sys.platform == 'darwin':
+        return f'lib{base}.dylib'
+    if sys.platform == 'linux':
+        return f'lib{base}.so'
+    if sys.platform == 'win32':
+        return f'{base}.dll'
 
-lib = ctypes.CDLL(f'{os.path.dirname(__file__)}/{name}')
+lib = ctypes.CDLL(f'{os.path.dirname(__file__)}/{lib_name("whisper")}')
+
 ctypes_function = ctypes_function_for_shared_library(lib)
 
 WHISPER_AHEADS_NONE = 0
@@ -131,6 +134,14 @@ WHISPER_AHEADS_LARGE_V2 = 12
 WHISPER_AHEADS_LARGE_V3 = 13
 
 WHISPER_SAMPLING_GREEDY = 0
+
+@ctypes_function(
+    'ggml_backend_load',
+    [ctypes.c_char_p],
+    ctypes.c_void_p
+)
+def ggml_backend_load():
+    pass
 
 @ctypes_function(
     'whisper_context_default_params',
@@ -223,6 +234,12 @@ class Whisper(object):
     def __init__(self, model_path, aheads, verbose):
         if not verbose:
             whisper_log_set(c_log_callback, None)
+        ggml_backend_load(f'{os.path.dirname(__file__)}/{lib_name("ggml-cpu")}'.encode())
+        if sys.platform == 'darwin':
+            ggml_backend_load(f'{os.path.dirname(__file__)}/{lib_name("ggml-metal")}'.encode())
+        if sys.platform == 'linux':
+            ggml_backend_load(f'{os.path.dirname(__file__)}/{lib_name("ggml-opencl")}'.encode())
+
         dp = whisper_context_default_params()
         dp.dtw_aheads_preset = aheads
         self.ctx = whisper_init_from_file_with_params(model_path.encode(), dp)
